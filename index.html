@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BINGO LUISA GUERRA</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #1a0033 0%, #4a0e7a 50%, #7b1fa2 100%);
+    color: #fff;
+    min-height: 100vh;
+    padding: 16px;
+  }
+  header { text-align: center; margin-bottom: 20px; }
+  h1 {
+    font-size: 2.4rem;
+    background: linear-gradient(90deg, #ffd700, #ffeb3b, #ffc107);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    letter-spacing: 2px;
+    font-weight: 900;
+  }
+  h2 { font-size: 1rem; color: #e0c3fc; font-weight: 400; margin-top: 4px; }
+
+  .container {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 16px;
+    max-width: 1500px;
+    margin: 0 auto;
+  }
+  @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 12px;
+    padding: 16px;
+    backdrop-filter: blur(8px);
+    margin-bottom: 12px;
+  }
+  .panel h3 {
+    color: #ffd700;
+    font-size: 1.05rem;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(255,215,0,0.3);
+    padding-bottom: 6px;
+  }
+
+  .row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+  .row.inline { flex-direction: row; align-items: center; }
+  label { font-size: 0.85rem; color: #e0c3fc; }
+  input, select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,215,0,0.4);
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 0.95rem;
+    width: 100%;
+  }
+  input:focus, select:focus { outline: 2px solid #ffd700; }
+
+  button {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    width: 100%;
+    margin-top: 6px;
+  }
+  .btn-primary { background: linear-gradient(135deg, #ffd700, #ffa000); color: #1a0033; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,215,0,0.4); }
+  .btn-secondary { background: linear-gradient(135deg, #7b1fa2, #4a0e7a); color: #fff; }
+  .btn-secondary:hover { transform: translateY(-2px); }
+  .btn-danger { background: linear-gradient(135deg, #d32f2f, #b71c1c); color: #fff; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+  .pot-display {
+    background: linear-gradient(135deg, rgba(76,175,80,0.2), rgba(76,175,80,0.05));
+    border: 1px solid #4caf50;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .pot-display .value { font-size: 1.6rem; font-weight: 900; color: #4caf50; }
+  .pot-display .label { font-size: 0.75rem; color: #a5d6a7; }
+
+  .prize-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .prize-box {
+    background: rgba(255,215,0,0.1);
+    border: 1px solid rgba(255,215,0,0.4);
+    padding: 8px;
+    border-radius: 6px;
+    text-align: center;
+  }
+  .prize-box .pl { font-size: 0.7rem; color: #e0c3fc; }
+  .prize-box .pv { font-size: 0.95rem; font-weight: bold; color: #ffd700; margin-top: 3px; }
+  .prize-box.won { background: rgba(76,175,80,0.25); border-color: #4caf50; }
+
+  .indicators { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.85rem; }
+  .indicator { background: rgba(255,255,255,0.08); padding: 8px; border-radius: 6px; border-left: 3px solid #ffd700; }
+  .indicator .label { color: #e0c3fc; font-size: 0.72rem; }
+  .indicator .value { color: #fff; font-weight: bold; font-size: 0.95rem; margin-top: 2px; }
+
+  .player-list { max-height: 220px; overflow-y: auto; }
+  .player-row {
+    background: rgba(255,255,255,0.06);
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+  }
+  .player-row .pname { font-weight: bold; color: #ffd700; }
+  .player-row .pbal { color: #4caf50; }
+  .player-row .premove {
+    background: #d32f2f; color: #fff; border: none; width: 22px; height: 22px;
+    border-radius: 50%; cursor: pointer; font-size: 0.7rem; padding: 0; margin: 0;
+  }
+
+  .current-number { text-align: center; margin-bottom: 12px; }
+  .ball {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 100px; height: 100px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #fff, #ffd700, #ff8f00);
+    color: #1a0033; font-size: 2.4rem; font-weight: 900;
+    box-shadow: 0 0 30px rgba(255,215,0,0.6), inset -5px -5px 10px rgba(0,0,0,0.2);
+    border: 4px solid #fff;
+  }
+  .ball.empty {
+    background: rgba(255,255,255,0.1); color: #888;
+    box-shadow: none; border: 2px dashed rgba(255,255,255,0.3); font-size: 1rem;
+  }
+  .ball-letter { display: block; font-size: 0.75rem; color: #7b1fa2; line-height: 1; }
+  .last-numbers { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 10px; }
+  .last-ball {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,215,0,0.2); border: 1px solid rgba(255,215,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: bold;
+  }
+
+  .player-section {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .player-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .player-header .pn { font-size: 1.1rem; font-weight: bold; color: #ffd700; }
+  .player-header .pb { font-size: 0.95rem; color: #4caf50; font-weight: bold; }
+  .player-status { display: flex; gap: 6px; flex-wrap: wrap; font-size: 0.75rem; }
+  .status-tag {
+    background: rgba(255,255,255,0.1); padding: 3px 8px; border-radius: 12px;
+  }
+  .status-tag.achieved { background: rgba(76,175,80,0.3); color: #a5d6a7; }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .card {
+    background: linear-gradient(135deg, #fff, #f0e6ff);
+    color: #1a0033; border-radius: 10px; padding: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4); border: 3px solid #ffd700;
+  }
+  .card.full-winner { border-color: #4caf50; animation: winner 1s infinite; }
+  @keyframes winner {
+    0%, 100% { box-shadow: 0 0 20px rgba(76,175,80,0.8); }
+    50% { box-shadow: 0 0 40px rgba(76,175,80,1); }
+  }
+  .card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 6px; font-size: 0.75rem; font-weight: bold; color: #4a0e7a;
+  }
+  .card-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; }
+  .card-letter {
+    background: linear-gradient(135deg, #7b1fa2, #4a0e7a); color: #ffd700;
+    text-align: center; padding: 5px 0; font-weight: 900;
+    border-radius: 4px; font-size: 0.95rem;
+  }
+  .card-cell {
+    background: #fff; color: #1a0033; text-align: center;
+    padding: 7px 0; border: 1px solid #ddd; border-radius: 4px;
+    font-weight: bold; font-size: 0.9rem; transition: all 0.2s; position: relative;
+  }
+  .card-cell.marked { background: linear-gradient(135deg, #4caf50, #2e7d32); color: #fff; transform: scale(1.05); box-shadow: 0 0 8px rgba(76,175,80,0.6); }
+  .card-cell.free { background: linear-gradient(135deg, #ffd700, #ffa000); color: #1a0033; font-size: 0.65rem; }
+
+  .winner-banner {
+    background: linear-gradient(90deg, #4caf50, #2e7d32);
+    padding: 12px; border-radius: 8px; text-align: center;
+    font-size: 1.05rem; font-weight: bold; margin-bottom: 12px;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse { 50% { opacity: 0.8; } }
+  .empty-state { text-align: center; padding: 40px 20px; color: #e0c3fc; font-style: italic; }
+
+  .log-list {
+    max-height: 180px; overflow-y: auto; font-size: 0.8rem;
+    background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px;
+  }
+  .log-item { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .log-item:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>★ BINGO LUISA GUERRA ★</h1>
+  <h2>Bingo Virtual Profesional · 100 cartones · Cartón a 10 Bs</h2>
+  <div style="margin-top: 8px;">
+    <label style="font-size: 0.85rem; color: #e0c3fc;">
+      <input type="checkbox" id="soundToggle" checked style="width: auto; margin-right: 4px; vertical-align: middle;">
+      🔊 Sonido y voz activados
+    </label>
+  </div>
+</header>
+
+<div class="container">
+  <!-- LEFT PANEL -->
+  <aside>
+    <div class="panel">
+      <h3>👥 Registrar Jugador</h3>
+      <div class="row">
+        <label>Nombre del jugador:</label>
+        <input type="text" id="playerName" placeholder="Ej: María">
+      </div>
+      <div class="row">
+        <label>Recarga (100 - 1.000 Bs):</label>
+        <input type="number" id="playerDeposit" min="100" max="1000" step="any" placeholder="100">
+      </div>
+      <button class="btn-primary" id="addPlayerBtn">Registrar y recargar</button>
+    </div>
+
+    <div class="panel">
+      <h3>💰 Pote Acumulado</h3>
+      <div class="pot-display">
+        <div class="value" id="potValue">Bs. 0,00</div>
+        <div class="label">Suma de todas las recargas</div>
+      </div>
+      <div class="prize-grid">
+        <div class="prize-box" id="prize1">
+          <div class="pl">1 Línea (10%)</div><div class="pv" id="prize1v">Bs. 0</div>
+        </div>
+        <div class="prize-box" id="prize2">
+          <div class="pl">2 Líneas (20%)</div><div class="pv" id="prize2v">Bs. 0</div>
+        </div>
+        <div class="prize-box" id="prize3">
+          <div class="pl">Bingo (35%)</div><div class="pv" id="prize3v">Bs. 0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>🎫 Comprar Cartones</h3>
+      <div class="row">
+        <label>Jugador:</label>
+        <select id="buyPlayer"></select>
+      </div>
+      <div class="row">
+        <label>Cantidad (1 a 4) — 10 Bs c/u:</label>
+        <select id="cardCount">
+          <option value="1">1 cartón (10 Bs)</option>
+          <option value="2">2 cartones (20 Bs)</option>
+          <option value="3">3 cartones (30 Bs)</option>
+          <option value="4" selected>4 cartones (40 Bs)</option>
+        </select>
+      </div>
+      <button class="btn-primary" id="buyBtn">Comprar (Auto)</button>
+      <button class="btn-secondary" id="startBtn" disabled>▶ Iniciar Sorteo</button>
+      <button class="btn-secondary" id="nextBtn" disabled>⏭ Siguiente número</button>
+      <button class="btn-danger" id="resetBtn">↻ Reiniciar Partida</button>
+    </div>
+
+    <div class="panel">
+      <h3>📊 Indicadores</h3>
+      <div class="indicators">
+        <div class="indicator"><div class="label">Jugadores</div><div class="value" id="iPlayers">0</div></div>
+        <div class="indicator"><div class="label">Cartones jugados</div><div class="value" id="iCards">0</div></div>
+        <div class="indicator"><div class="label">Bolas cantadas</div><div class="value" id="iBalls">0</div></div>
+        <div class="indicator"><div class="label">Bolas restantes</div><div class="value" id="iBallsLeft">75</div></div>
+        <div class="indicator"><div class="label">Total recargado</div><div class="value" id="iDeposited">Bs. 0</div></div>
+        <div class="indicator"><div class="label">Total apostado</div><div class="value" id="iSpent">Bs. 0</div></div>
+        <div class="indicator"><div class="label">Premios pagados</div><div class="value" id="iPaid">Bs. 0</div></div>
+        <div class="indicator"><div class="label">Casillas marcadas</div><div class="value" id="iMarks">0</div></div>
+        <div class="indicator"><div class="label">Líneas logradas</div><div class="value" id="iLines">0</div></div>
+        <div class="indicator"><div class="label">Bingos logrados</div><div class="value" id="iBingos">0</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>📋 Jugadores</h3>
+      <div class="player-list" id="playerList"><div class="empty-state" style="padding:10px;">Sin jugadores</div></div>
+    </div>
+  </aside>
+
+  <!-- RIGHT MAIN -->
+  <main>
+    <div class="panel">
+      <h3>🎱 Bola Actual</h3>
+      <div class="current-number">
+        <div class="ball empty" id="currentBall">--</div>
+      </div>
+      <div class="last-numbers" id="lastNumbers"></div>
+    </div>
+
+    <div id="winnerBanner"></div>
+
+    <div class="panel">
+      <h3>📜 Registro de la partida</h3>
+      <div class="log-list" id="logList"><div class="log-item">Esperando inicio de la partida...</div></div>
+    </div>
+
+    <div id="playersArea">
+      <div class="panel"><div class="empty-state">Registra jugadores y compra cartones para empezar a jugar</div></div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ===== SOUND ENGINE =====
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch (e) { return null; }
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function soundEnabled() {
+  const el = document.getElementById('soundToggle');
+  return el ? el.checked : true;
+}
+function beep(freq, duration, type = 'sine', volume = 0.2) {
+  if (!soundEnabled()) return;
+  const ctx = getAudio();
+  if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(volume, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime + duration);
+}
+function playBallSound() {
+  beep(880, 0.08, 'sine', 0.15);
+  setTimeout(() => beep(1320, 0.12, 'sine', 0.15), 80);
+}
+function playLineSound() {
+  [523, 659, 784].forEach((f, i) => setTimeout(() => beep(f, 0.15, 'triangle', 0.2), i * 100));
+}
+function playBingoSound() {
+  const notes = [523, 659, 784, 1047, 1319];
+  notes.forEach((f, i) => setTimeout(() => beep(f, 0.18, 'square', 0.18), i * 90));
+  setTimeout(() => {
+    [1319, 1047, 1319, 1568].forEach((f, i) => setTimeout(() => beep(f, 0.2, 'triangle', 0.2), i * 110));
+  }, 600);
+}
+function playPurchaseSound() {
+  beep(440, 0.06, 'square', 0.12);
+  setTimeout(() => beep(660, 0.08, 'square', 0.12), 60);
+}
+function speakNumber(letter, num) {
+  if (!soundEnabled()) return;
+  if (!('speechSynthesis' in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(`${letter}, ${num}`);
+    u.lang = 'es-ES';
+    u.rate = 0.9;
+    u.pitch = 1.1;
+    u.volume = 0.9;
+    const voices = window.speechSynthesis.getVoices();
+    const esVoice = voices.find(v => v.lang.startsWith('es'));
+    if (esVoice) u.voice = esVoice;
+    window.speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function speakText(text) {
+  if (!soundEnabled() || !('speechSynthesis' in window)) return;
+  try {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'es-ES';
+    u.rate = 1;
+    u.pitch = 1.1;
+    u.volume = 0.9;
+    const voices = window.speechSynthesis.getVoices();
+    const esVoice = voices.find(v => v.lang.startsWith('es'));
+    if (esVoice) u.voice = esVoice;
+    window.speechSynthesis.speak(u);
+  } catch (e) {}
+}
+// Pre-load voices (Chrome loads them async)
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+}
+
+const LETTERS = ['B', 'I', 'N', 'G', 'O'];
+const RANGES = [[1,15],[16,30],[31,45],[46,60],[61,75]];
+const TOTAL_AVAILABLE_CARDS = 100;
+const CARD_PRICE = 10;
+const PRIZE_PCT = { line1: 0.10, line2: 0.20, full: 0.35 };
+
+const state = {
+  players: [], // { id, name, balance, cards: [] }
+  pot: 0,
+  totalDeposited: 0,
+  totalSpent: 0,
+  totalPaid: 0,
+  drawn: [],
+  remaining: [],
+  drawInterval: null,
+  gameActive: false,
+  availablePool: [],
+  prizesAwarded: { line1: false, line2: false, full: false },
+  stats: { marks: 0, lines: 0, bingos: 0 },
+  log: [],
+  nextPlayerId: 1,
+  nextCardId: 1,
+};
+
+function fmt(n) {
+  return 'Bs. ' + Number(n).toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function initPool() {
+  state.availablePool = [];
+  for (let i = 1; i <= TOTAL_AVAILABLE_CARDS; i++) state.availablePool.push(i);
+}
+initPool();
+
+function pickAvailableIds(n) {
+  const ids = [];
+  for (let i = 0; i < n && state.availablePool.length > 0; i++) {
+    const idx = Math.floor(Math.random() * state.availablePool.length);
+    ids.push(state.availablePool.splice(idx, 1)[0]);
+  }
+  return ids;
+}
+
+function generateCard(id) {
+  const grid = [];
+  for (let col = 0; col < 5; col++) {
+    const [min, max] = RANGES[col];
+    const nums = [];
+    while (nums.length < 5) {
+      const n = Math.floor(Math.random() * (max - min + 1)) + min;
+      if (!nums.includes(n)) nums.push(n);
+    }
+    grid.push(nums);
+  }
+  grid[2][2] = 'FREE';
+  return {
+    id, grid,
+    marks: Array.from({length: 5}, (_, c) => Array.from({length: 5}, (_, r) => c === 2 && r === 2)),
+    lineCount: 0,
+    achievedLine1: false,
+    achievedLine2: false,
+    achievedFull: false,
+  };
+}
+
+function addPlayer() {
+  const name = document.getElementById('playerName').value.trim();
+  const dep = parseFloat(document.getElementById('playerDeposit').value);
+  if (!name) { alert('Ingresa un nombre'); return; }
+  if (!dep || dep < 100 || dep > 1000) { alert('Recarga debe ser entre 100 y 1.000 Bs'); return; }
+  if (state.gameActive) { alert('No puedes agregar jugadores con la partida en curso'); return; }
+  const player = { id: state.nextPlayerId++, name, balance: dep, cards: [] };
+  state.players.push(player);
+  state.pot += dep;
+  state.totalDeposited += dep;
+  document.getElementById('playerName').value = '';
+  document.getElementById('playerDeposit').value = '';
+  addLog(`✅ ${name} se unió con ${fmt(dep)}. Pote: ${fmt(state.pot)}`);
+  renderAll();
+}
+
+function removePlayer(id) {
+  if (state.gameActive) { alert('No puedes quitar jugadores durante la partida'); return; }
+  const p = state.players.find(x => x.id === id);
+  if (!p) return;
+  if (!confirm(`¿Eliminar a ${p.name}? Su saldo (${fmt(p.balance)}) será devuelto y se restará del pote.`)) return;
+  state.pot -= p.balance + (p.cards.length * CARD_PRICE);
+  state.totalDeposited -= (p.balance + p.cards.length * CARD_PRICE);
+  state.players = state.players.filter(x => x.id !== id);
+  // Return their cards to pool
+  p.cards.forEach(c => state.availablePool.push(c.id));
+  addLog(`❌ ${p.name} fue eliminado de la partida`);
+  renderAll();
+}
+
+function buyCards() {
+  if (state.gameActive) { alert('Espera a que termine el sorteo actual'); return; }
+  const playerId = parseInt(document.getElementById('buyPlayer').value);
+  const player = state.players.find(p => p.id === playerId);
+  if (!player) { alert('Selecciona un jugador'); return; }
+  const count = parseInt(document.getElementById('cardCount').value);
+  const total = count * CARD_PRICE;
+  if (total > player.balance) { alert(`${player.name} no tiene saldo suficiente`); return; }
+  if (state.availablePool.length < count) { alert('No quedan cartones disponibles'); return; }
+
+  player.balance -= total;
+  state.totalSpent += total;
+  state.pot += total;
+  const ids = pickAvailableIds(count);
+  ids.forEach(id => player.cards.push(generateCard(id)));
+
+  addLog(`🎫 ${player.name} compró ${count} cartón(es) por ${fmt(total)}`);
+  playPurchaseSound();
+  if (anyPlayerHasCards()) document.getElementById('startBtn').disabled = false;
+  renderAll();
+}
+
+function anyPlayerHasCards() {
+  return state.players.some(p => p.cards.length > 0);
+}
+
+function getAllCards() {
+  const all = [];
+  state.players.forEach(p => p.cards.forEach(c => all.push({ player: p, card: c })));
+  return all;
+}
+
+function checkLineCount(card) {
+  let lines = 0;
+  for (let row = 0; row < 5; row++) if (card.marks.every(col => col[row])) lines++;
+  for (let col = 0; col < 5; col++) if (card.marks[col].every(v => v)) lines++;
+  if ([0,1,2,3,4].every(i => card.marks[i][i])) lines++;
+  if ([0,1,2,3,4].every(i => card.marks[i][4-i])) lines++;
+  return lines;
+}
+
+function checkFull(card) {
+  for (let col = 0; col < 5; col++)
+    for (let row = 0; row < 5; row++)
+      if (!card.marks[col][row]) return false;
+  return true;
+}
+
+function markCards(num) {
+  state.players.forEach(p => {
+    p.cards.forEach(card => {
+      for (let col = 0; col < 5; col++) {
+        for (let row = 0; row < 5; row++) {
+          if (card.grid[col][row] === num && !card.marks[col][row]) {
+            card.marks[col][row] = true;
+            state.stats.marks++;
+          }
+        }
+      }
+    });
+  });
+}
+
+function evaluatePrizes() {
+  // 1 LINEA
+  if (!state.prizesAwarded.line1) {
+    const winners = [];
+    getAllCards().forEach(({ player, card }) => {
+      if (!card.achievedLine1 && checkLineCount(card) >= 1) {
+        card.achievedLine1 = true;
+        winners.push({ player, card });
+      }
+    });
+    if (winners.length > 0) {
+      state.prizesAwarded.line1 = true;
+      const prize = state.pot * PRIZE_PCT.line1;
+      const share = prize / winners.length;
+      winners.forEach(w => {
+        w.player.balance += share;
+        state.stats.lines++;
+      });
+      state.totalPaid += prize;
+      const names = winners.map(w => `${w.player.name} (cartón #${String(w.card.id).padStart(3,'0')})`).join(', ');
+      addLog(`🎉 1 LÍNEA: ${names}. Premio total ${fmt(prize)}, ${share === prize ? '' : 'dividido en ' + winners.length + ' (cada uno ' + fmt(share) + ')'}`);
+      showBanner(`🎉 ¡1 LÍNEA! ${names} — ${fmt(share)} c/u`);
+      setTimeout(() => { playLineSound(); speakText(`Una línea para ${winners.map(w => w.player.name).join(' y ')}`); }, 1200);
+    }
+  }
+
+  // 2 LINEAS
+  if (state.prizesAwarded.line1 && !state.prizesAwarded.line2) {
+    const winners = [];
+    getAllCards().forEach(({ player, card }) => {
+      if (!card.achievedLine2 && checkLineCount(card) >= 2 && !checkFull(card)) {
+        card.achievedLine2 = true;
+        winners.push({ player, card });
+      }
+    });
+    if (winners.length > 0) {
+      state.prizesAwarded.line2 = true;
+      const prize = state.pot * PRIZE_PCT.line2;
+      const share = prize / winners.length;
+      winners.forEach(w => {
+        w.player.balance += share;
+        state.stats.lines++;
+      });
+      state.totalPaid += prize;
+      const names = winners.map(w => `${w.player.name} (cartón #${String(w.card.id).padStart(3,'0')})`).join(', ');
+      addLog(`🎉 2 LÍNEAS: ${names}. Premio total ${fmt(prize)}${winners.length > 1 ? ', dividido en ' + winners.length + ' (cada uno ' + fmt(share) + ')' : ''}`);
+      showBanner(`🎉 ¡2 LÍNEAS! ${names} — ${fmt(share)} c/u`);
+      setTimeout(() => { playLineSound(); speakText(`Dos líneas para ${winners.map(w => w.player.name).join(' y ')}`); }, 1200);
+    }
+  }
+
+  // BINGO LLENO
+  if (!state.prizesAwarded.full) {
+    const winners = [];
+    getAllCards().forEach(({ player, card }) => {
+      if (!card.achievedFull && checkFull(card)) {
+        card.achievedFull = true;
+        winners.push({ player, card });
+      }
+    });
+    if (winners.length > 0) {
+      state.prizesAwarded.full = true;
+      const prize = state.pot * PRIZE_PCT.full;
+      const share = prize / winners.length;
+      winners.forEach(w => {
+        w.player.balance += share;
+        state.stats.bingos++;
+      });
+      state.totalPaid += prize;
+      const names = winners.map(w => `${w.player.name} (cartón #${String(w.card.id).padStart(3,'0')})`).join(', ');
+      addLog(`🏆 BINGO: ${names}. Premio total ${fmt(prize)}${winners.length > 1 ? ', dividido en ' + winners.length + ' (cada uno ' + fmt(share) + ')' : ''}`);
+      showBanner(`🏆 ¡BINGO! ${names} — ${fmt(share)} c/u`);
+      setTimeout(() => { playBingoSound(); speakText(`¡Bingo! Felicidades a ${winners.map(w => w.player.name).join(' y ')}`); }, 1200);
+      endGame();
+    }
+  }
+}
+
+function drawNext() {
+  if (state.remaining.length === 0) { endGame(); return; }
+  const idx = Math.floor(Math.random() * state.remaining.length);
+  const num = state.remaining.splice(idx, 1)[0];
+  state.drawn.push(num);
+  const letter = LETTERS[Math.floor((num - 1) / 15)];
+  addLog(`🎱 Cantado: ${letter}-${num}`);
+  playBallSound();
+  speakNumber(letter, num);
+  markCards(num);
+  evaluatePrizes();
+  renderAll();
+}
+
+function startGame() {
+  if (!anyPlayerHasCards()) { alert('Compra al menos un cartón'); return; }
+  if (state.gameActive) {
+    clearInterval(state.drawInterval);
+    state.gameActive = false;
+    document.getElementById('startBtn').textContent = '▶ Continuar';
+    document.getElementById('nextBtn').disabled = false;
+    return;
+  }
+  if (state.remaining.length === 0 && state.drawn.length === 0) {
+    for (let i = 1; i <= 75; i++) state.remaining.push(i);
+    addLog(`▶ Inicio de partida. Pote: ${fmt(state.pot)}`);
+  }
+  state.gameActive = true;
+  document.getElementById('startBtn').textContent = '⏸ Pausar';
+  document.getElementById('nextBtn').disabled = true;
+  state.drawInterval = setInterval(drawNext, 3000);
+}
+
+function manualNext() {
+  if (state.gameActive) return;
+  if (state.remaining.length === 0 && state.drawn.length === 0) {
+    for (let i = 1; i <= 75; i++) state.remaining.push(i);
+    addLog(`▶ Inicio de partida. Pote: ${fmt(state.pot)}`);
+  }
+  drawNext();
+}
+
+function endGame() {
+  clearInterval(state.drawInterval);
+  state.gameActive = false;
+  document.getElementById('startBtn').textContent = '▶ Iniciar Sorteo';
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('nextBtn').disabled = true;
+  if (!state.prizesAwarded.full && state.remaining.length === 0) {
+    addLog('⏹ Partida terminada sin Bingo lleno.');
+    showBanner('Partida terminada sin Bingo lleno');
+  }
+  renderAll();
+}
+
+function resetGame() {
+  if (!confirm('¿Reiniciar la partida? Se perderán todos los jugadores y cartones.')) return;
+  clearInterval(state.drawInterval);
+  state.players = [];
+  state.pot = 0;
+  state.totalDeposited = 0;
+  state.totalSpent = 0;
+  state.totalPaid = 0;
+  state.drawn = [];
+  state.remaining = [];
+  state.gameActive = false;
+  state.prizesAwarded = { line1: false, line2: false, full: false };
+  state.stats = { marks: 0, lines: 0, bingos: 0 };
+  state.log = [];
+  state.nextPlayerId = 1;
+  initPool();
+  document.getElementById('startBtn').textContent = '▶ Iniciar Sorteo';
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('nextBtn').disabled = true;
+  document.getElementById('winnerBanner').innerHTML = '';
+  addLog('↻ Partida reiniciada');
+  renderAll();
+}
+
+function addLog(msg) {
+  const ts = new Date().toLocaleTimeString('es-VE');
+  state.log.unshift(`[${ts}] ${msg}`);
+  if (state.log.length > 100) state.log.pop();
+}
+
+function showBanner(msg) {
+  document.getElementById('winnerBanner').innerHTML = `<div class="winner-banner">${msg}</div>`;
+}
+
+function renderCurrentBall() {
+  const ball = document.getElementById('currentBall');
+  if (state.drawn.length === 0) { ball.className = 'ball empty'; ball.innerHTML = '--'; return; }
+  const num = state.drawn[state.drawn.length - 1];
+  const letter = LETTERS[Math.floor((num - 1) / 15)];
+  ball.className = 'ball';
+  ball.innerHTML = `<div><span class="ball-letter">${letter}</span>${num}</div>`;
+}
+
+function renderLastNumbers() {
+  const el = document.getElementById('lastNumbers');
+  el.innerHTML = state.drawn.slice(-20).map(n => `<div class="last-ball">${n}</div>`).join('');
+}
+
+function renderPot() {
+  document.getElementById('potValue').textContent = fmt(state.pot);
+  document.getElementById('prize1v').textContent = fmt(state.pot * PRIZE_PCT.line1);
+  document.getElementById('prize2v').textContent = fmt(state.pot * PRIZE_PCT.line2);
+  document.getElementById('prize3v').textContent = fmt(state.pot * PRIZE_PCT.full);
+  document.getElementById('prize1').classList.toggle('won', state.prizesAwarded.line1);
+  document.getElementById('prize2').classList.toggle('won', state.prizesAwarded.line2);
+  document.getElementById('prize3').classList.toggle('won', state.prizesAwarded.full);
+}
+
+function renderIndicators() {
+  document.getElementById('iPlayers').textContent = state.players.length;
+  document.getElementById('iCards').textContent = state.players.reduce((s, p) => s + p.cards.length, 0);
+  document.getElementById('iBalls').textContent = state.drawn.length;
+  document.getElementById('iBallsLeft').textContent = state.remaining.length || (state.drawn.length === 0 ? 75 : 0);
+  document.getElementById('iDeposited').textContent = fmt(state.totalDeposited);
+  document.getElementById('iSpent').textContent = fmt(state.totalSpent);
+  document.getElementById('iPaid').textContent = fmt(state.totalPaid);
+  document.getElementById('iMarks').textContent = state.stats.marks;
+  document.getElementById('iLines').textContent = state.stats.lines;
+  document.getElementById('iBingos').textContent = state.stats.bingos;
+}
+
+function renderPlayerList() {
+  const el = document.getElementById('playerList');
+  if (state.players.length === 0) {
+    el.innerHTML = '<div class="empty-state" style="padding:10px;">Sin jugadores</div>';
+  } else {
+    el.innerHTML = state.players.map(p => `
+      <div class="player-row">
+        <span><span class="pname">${p.name}</span> · <span class="pbal">${fmt(p.balance)}</span></span>
+        <button class="premove" onclick="removePlayer(${p.id})" title="Quitar">×</button>
+      </div>
+    `).join('');
+  }
+  // Update buyer select
+  const select = document.getElementById('buyPlayer');
+  const prev = select.value;
+  select.innerHTML = state.players.map(p => `<option value="${p.id}">${p.name} — ${fmt(p.balance)}</option>`).join('');
+  if (prev && state.players.find(p => p.id == prev)) select.value = prev;
+}
+
+function renderPlayersArea() {
+  const el = document.getElementById('playersArea');
+  const playersWithCards = state.players.filter(p => p.cards.length > 0);
+  if (playersWithCards.length === 0) {
+    el.innerHTML = '<div class="panel"><div class="empty-state">Registra jugadores y compra cartones para empezar a jugar</div></div>';
+    return;
+  }
+  el.innerHTML = playersWithCards.map(p => {
+    const cardsHtml = p.cards.map(card => {
+      const cells = [];
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 5; col++) {
+          const val = card.grid[col][row];
+          const marked = card.marks[col][row];
+          const isFree = val === 'FREE';
+          cells.push(`<div class="card-cell ${marked ? 'marked' : ''} ${isFree ? 'free' : ''}">${isFree ? 'FREE' : val}</div>`);
+        }
+      }
+      return `
+        <div class="card ${card.achievedFull ? 'full-winner' : ''}">
+          <div class="card-header">
+            <span>Cartón #${String(card.id).padStart(3,'0')}</span>
+            <span>${p.name}</span>
+          </div>
+          <div class="card-grid">
+            ${LETTERS.map(l => `<div class="card-letter">${l}</div>`).join('')}
+            ${cells.join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    const tags = [];
+    if (p.cards.some(c => c.achievedLine1)) tags.push('<span class="status-tag achieved">1 línea ✓</span>');
+    if (p.cards.some(c => c.achievedLine2)) tags.push('<span class="status-tag achieved">2 líneas ✓</span>');
+    if (p.cards.some(c => c.achievedFull)) tags.push('<span class="status-tag achieved">BINGO 🏆</span>');
+
+    return `
+      <div class="player-section">
+        <div class="player-header">
+          <div>
+            <div class="pn">${p.name}</div>
+            <div class="player-status">${tags.join('') || '<span class="status-tag">en juego</span>'}</div>
+          </div>
+          <div class="pb">${fmt(p.balance)}</div>
+        </div>
+        <div class="cards-grid">${cardsHtml}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderLog() {
+  const el = document.getElementById('logList');
+  el.innerHTML = state.log.length === 0
+    ? '<div class="log-item">Esperando inicio de la partida...</div>'
+    : state.log.map(l => `<div class="log-item">${l}</div>`).join('');
+}
+
+function renderAll() {
+  renderPot();
+  renderIndicators();
+  renderPlayerList();
+  renderPlayersArea();
+  renderCurrentBall();
+  renderLastNumbers();
+  renderLog();
+}
+
+document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
+document.getElementById('buyBtn').addEventListener('click', buyCards);
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('nextBtn').addEventListener('click', manualNext);
+document.getElementById('resetBtn').addEventListener('click', resetGame);
+document.getElementById('playerName').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('playerDeposit').focus(); });
+document.getElementById('playerDeposit').addEventListener('keydown', e => { if (e.key === 'Enter') addPlayer(); });
+window.removePlayer = removePlayer;
+
+renderAll();
+</script>
+</body>
+</html>
